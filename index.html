@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nexus Video</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f1c;--surface:#161a2e;--surface2:#1f2440;--line:#2a3050;
+  --text:#e9ebf8;--muted:#8f95ba;--accent:#ff4f8b;--accent2:#3ddbd9;--danger:#ff6b6b;
+  --top:60px;--side:220px;color-scheme:dark
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font:15px/1.5 Sora,system-ui,sans-serif;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;border-radius:10px;padding:9px 16px;background:var(--accent);font-weight:600;transition:transform .15s,filter .15s}
+button:hover{filter:brightness(1.1)}button:active{transform:scale(.96)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.ghost{background:var(--surface2)}
+button.icon{background:none;font-size:22px;padding:6px 10px}
+:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+input,textarea{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+textarea{resize:vertical;min-height:80px}
+input:focus,textarea:focus{border-color:var(--accent2);outline:0}
+
+.top{position:fixed;inset:0 0 auto 0;height:var(--top);display:flex;align-items:center;gap:14px;padding:0 16px;background:rgba(13,15,28,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);z-index:20}
+.logo{font-weight:700;font-size:19px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.logo i{font-style:normal;background:var(--accent);border-radius:8px;padding:1px 7px;font-size:14px}
+.logo b{color:var(--accent2)}
+.search{flex:1;max-width:620px;margin:0 auto;display:flex}
+.search input{border-radius:10px 0 0 10px}
+.search button{border-radius:0 10px 10px 0;background:var(--surface2)}
+.user{background:var(--surface2);border-radius:99px;padding:6px 14px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.side{position:fixed;top:var(--top);bottom:0;left:0;width:var(--side);padding:14px 10px;border-right:1px solid var(--line);background:var(--bg);display:flex;flex-direction:column;gap:4px;z-index:15;transition:transform .25s}
+.side a{padding:11px 14px;border-radius:10px;color:var(--muted)}
+.side a:hover{background:var(--surface)}
+.side a.on{background:var(--surface2);color:var(--text)}
+main{margin:var(--top) 0 0 var(--side);padding:24px}
+
+.hero{padding:34px 0 26px}
+.hero h1{font-size:clamp(26px,4vw,40px);line-height:1.15;margin-bottom:6px}
+.hero p{color:var(--muted);margin-bottom:18px}
+.hero form{display:flex;max-width:720px}
+.hero input{padding:16px 18px;font-size:17px;border-radius:14px 0 0 14px}
+.hero button{border-radius:0 14px 14px 0;padding:0 28px;font-size:16px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:22px 18px}
+.card .th{aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:var(--surface)}
+.card img{width:100%;height:100%;object-fit:cover;transition:transform .35s}
+.card:hover img{transform:scale(1.05)}
+.meta{display:flex;gap:10px;margin-top:10px}
+.meta h3{font-size:15px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.meta p{color:var(--muted);font-size:13px}
+.av{flex:none;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#7b5cff);display:grid;place-items:center;font-weight:700}
+.empty{color:var(--muted);padding:50px 0;text-align:center}
+.card .del{margin-top:8px;background:var(--surface2);color:var(--danger);padding:6px 12px;font-size:13px}
+
+.watch{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px}
+.watch video{width:100%;aspect-ratio:16/9;background:#000;border-radius:14px}
+.watch h1{font-size:21px;margin:14px 0 10px}
+.bar{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center}
+.owner{display:flex;gap:10px;align-items:center;font-weight:600}
+.votes{display:flex;border-radius:10px;overflow:hidden}
+.votes button{border-radius:0;background:var(--surface2);padding:9px 18px}
+.votes button.on{background:var(--accent2);color:#06231f}
+.desc{background:var(--surface);border-radius:14px;padding:14px;margin:14px 0;white-space:pre-wrap;word-break:break-word}
+.desc b{display:block;margin-bottom:6px}
+.cform{display:flex;gap:10px;margin:12px 0 18px;align-items:flex-start}
+.cform textarea{min-height:48px}
+.cm{display:flex;gap:10px;margin-bottom:16px}
+.cm p{white-space:pre-wrap;word-break:break-word}
+.cm small{color:var(--muted)}
+.cm .x{margin-left:8px;background:none;color:var(--danger);padding:0 6px;font-size:12px}
+.rel{display:flex;gap:10px;margin-bottom:14px}
+.rel .th{flex:none;width:150px;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:var(--surface)}
+.rel img{width:100%;height:100%;object-fit:cover}
+.rel h4{font-size:14px;line-height:1.3}.rel p{font-size:12px;color:var(--muted)}
+
+.form{max-width:680px;display:grid;gap:14px}
+.form h1{font-size:26px}
+.form label{display:grid;gap:6px;color:var(--muted);font-size:13px}
+.row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.prog{height:10px;background:var(--surface2);border-radius:99px;overflow:hidden;display:none}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .15s}
+.hint{color:var(--muted);font-size:13px}.err{color:var(--danger);font-size:13px;min-height:18px}
+.pv{max-width:100%;max-height:260px;border-radius:12px;background:#000;display:none}
+
+#modal{display:none;position:fixed;inset:0;z-index:50}
+.back{position:absolute;inset:0;background:rgba(5,6,14,.75);display:grid;place-items:center;padding:16px;overflow:auto}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;width:min(440px,100%);display:grid;gap:12px;animation:pop .18s ease-out}
+.box.wide{width:min(760px,100%);max-height:94vh;overflow:auto}
+.box canvas{width:100%;border-radius:12px;background:#000}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px}
+.box ul{list-style:none;padding:0;display:grid;gap:6px}
+.box li{display:flex;justify-content:space-between;background:var(--surface2);padding:6px 10px;border-radius:8px;font-size:13px}
+.box li button{background:none;color:var(--danger);padding:0 6px}
+@keyframes pop{from{transform:scale(.96);opacity:0}}
+
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,30px);background:var(--surface2);border:1px solid var(--line);padding:10px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:.25s;z-index:60}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media(max-width:1000px){.watch{grid-template-columns:1fr}}
+@media(max-width:760px){
+  main{margin-left:0;padding:16px}
+  .side{transform:translateX(-100%)}.side.open{transform:none}
+  .logo{font-size:0}.logo i{font-size:14px}
+  .user{max-width:90px}.grid3{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}
+}
+@media(min-width:761px){#menuBtn{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <button id="menuBtn" class="icon" aria-label="Menüyü aç">☰</button>
+  <a href="#/" class="logo"><i>▶</i>Nexus<b>Video</b></a>
+  <form id="searchForm" class="search" role="search">
+    <input id="q" type="search" placeholder="Video ara" autocomplete="off" maxlength="100" aria-label="Video ara">
+    <button type="submit">Ara</button>
+  </form>
+  <button id="userBtn" class="user" title="Kullanıcı adını değiştir"></button>
+</header>
+
+<nav id="side" class="side">
+  <a href="#/" data-r="home">🏠 Ana Sayfa</a>
+  <a href="#/upload" data-r="upload">⬆️ Video Yükle</a>
+  <a href="#/mine" data-r="mine">📁 Videolarım</a>
+  <a href="#/liked" data-r="liked">👍 Beğendiklerim</a>
+</nav>
+
+<main id="app"></main>
+<div id="modal"></div>
+<div id="toast" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+// Supabase > Project Settings > API sayfasından al.
+// Buraya SADECE "anon / publishable" anahtarı konur. service_role anahtarını ASLA koyma.
+const CFG = {
+  url: 'https://PROJE-ID.supabase.co',
+  key: 'ANON-PUBLIC-KEY',
+  maxMB: 50   // Supabase ücretsiz planda dosya başına üst sınır 50 MB
+};
+
+// Montaj Stüdyosu: kırpma, yazı, ses seviyesi, müzik. Tamamen tarayıcıda çalışır.
+// Yöntem: video canvas'a çizilir (yazılar üstüne), ses WebAudio ile karıştırılır, MediaRecorder ile .webm kaydedilir.
+// Kayıt gerçek zamanlı olur: 30 sn'lik klip ≈ 30 sn sürer. Bu sırada sekme açık kalmalı.
+function openEditor(file) {
+  return new Promise(resolve => {
+    const m = document.getElementById('modal');
+    m.style.display = 'block';
+    m.innerHTML = `<div class="back"><div class="box wide">
+      <h2>🎬 Montaj Stüdyosu</h2>
+      <canvas id="cv"></canvas>
+      <div class="grid2">
+        <label>Başlangıç (sn)<input id="es" type="number" min="0" step="0.1" value="0"></label>
+        <label>Bitiş (sn)<input id="ee" type="number" min="0" step="0.1"></label>
+        <label>Video sesi<input id="ev" type="range" min="0" max="2" step="0.05" value="1"></label>
+        <label>Müzik sesi<input id="em" type="range" min="0" max="1" step="0.05" value="0.5"></label>
+      </div>
+      <label>Müzik ekle (ses dosyası)<input id="ef" type="file" accept="audio/*"></label>
+      <h3>Yazılar</h3>
+      <div class="grid3">
+        <input id="tt" placeholder="Ekranda görünecek yazı" maxlength="80">
+        <input id="tf" type="number" min="0" step="0.1" placeholder="Başlangıç sn">
+        <input id="te" type="number" min="0" step="0.1" placeholder="Bitiş sn">
+        <button id="ta" class="ghost" type="button">Ekle</button>
+      </div>
+      <ul id="tl"></ul>
+      <p id="st" class="hint">Başlangıç/bitiş saniyelerini ayarla, yazı ekle, önizle.</p>
+      <div class="row">
+        <button id="cx" class="ghost" type="button">İptal</button>
+        <button id="pv" class="ghost" type="button">▶ Önizle</button>
+        <button id="ok" type="button">✔ Montajı kaydet</button>
+      </div></div></div>`;
+    const q = s => m.querySelector(s);
+    const status = t => (q('#st').textContent = t);
+    const url = URL.createObjectURL(file);
+    const v = document.createElement('video');
+    v.src = url; v.playsInline = true; v.preload = 'auto';
+    const music = new Audio(); music.loop = true;
+    let musicUrl = null, ac, dest, gv, gm, running = false;
+    const texts = [];
+    const cv = q('#cv'), cx = cv.getContext('2d');
+
+    function draw() {
+      if (!cv.width) return;
+      cx.drawImage(v, 0, 0, cv.width, cv.height);
+      const fs = Math.round(cv.height / 12);
+      cx.font = `700 ${fs}px Sora, sans-serif`;
+      cx.textAlign = 'center'; cx.lineJoin = 'round';
+      cx.lineWidth = fs / 6; cx.strokeStyle = '#000'; cx.fillStyle = '#fff';
+      let i = 0;
+      for (const t of texts) {
+        if (v.currentTime >= t.from && v.currentTime <= t.to) {
+          const y = cv.height * 0.9 - i++ * fs * 1.2;
+          cx.strokeText(t.text, cv.width / 2, y, cv.width * 0.94);
+          cx.fillText(t.text, cv.width / 2, y, cv.width * 0.94);
+        }
+      }
+    }
+    v.onloadedmetadata = () => {
+      const sc = Math.min(1, 1280 / v.videoWidth);
+      cv.width = Math.round(v.videoWidth * sc); cv.height = Math.round(v.videoHeight * sc);
+      q('#ee').value = isFinite(v.duration) ? v.duration.toFixed(1) : 60;
+      v.currentTime = 0.01;
+    };
+    v.onseeked = draw;
+    v.onerror = () => status('Bu video tarayıcıda açılamadı. Montajsız yükleyebilirsin.');
+
+    function setupAudio() {
+      if (ac) return;
+      ac = new AudioContext(); dest = ac.createMediaStreamDestination();
+      gv = ac.createGain(); gm = ac.createGain();
+      ac.createMediaElementSource(v).connect(gv);
+      ac.createMediaElementSource(music).connect(gm);
+      gv.connect(dest); gm.connect(dest);
+    }
+    function monitor(on) {
+      [gv, gm].forEach(g => { try { g.disconnect(ac.destination); } catch {} if (on) g.connect(ac.destination); });
+    }
+    const seek = t => Math.abs(v.currentTime - t) < 0.02 ? Promise.resolve() : new Promise(r => {
+      const h = () => { v.removeEventListener('seeked', h); r(); };
+      v.addEventListener('seeked', h); v.currentTime = t;
+    });
+
+    async function run(record) {
+      if (running || !cv.width) return null;
+      const s = +q('#es').value || 0;
+      const e = Math.min(+q('#ee').value || 0, isFinite(v.duration) ? v.duration : 1e9);
+      if (!(e > s)) { status('Bitiş süresi başlangıçtan büyük olmalı.'); return null; }
+      running = true; setupAudio(); await ac.resume();
+      gv.gain.value = +q('#ev').value; gm.gain.value = musicUrl ? +q('#em').value : 0;
+      monitor(!record);
+      await seek(s);
+      let rec, chunks = [];
+      if (record) {
+        const stream = cv.captureStream(30);
+        dest.stream.getAudioTracks().forEach(t => stream.addTrack(t));
+        const mt = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find(t => MediaRecorder.isTypeSupported(t));
+        rec = new MediaRecorder(stream, { mimeType: mt, videoBitsPerSecond: 4e6 });
+        rec.ondataavailable = ev => ev.data.size && chunks.push(ev.data);
+        rec.start(500);
+      }
+      if (musicUrl) { music.currentTime = 0; music.play().catch(() => {}); }
+      await v.play();
+      await new Promise(done => {
+        const tick = () => {
+          draw();
+          status(`${record ? 'Kaydediliyor (sekmeyi kapatma)' : 'Önizleme'}: ${Math.max(0, v.currentTime - s).toFixed(1)} / ${(e - s).toFixed(1)} sn`);
+          if (v.currentTime >= e || v.ended || !running) return done();
+          requestAnimationFrame(tick);
+        };
+        tick();
+      });
+      v.pause(); music.pause();
+      const wasStopped = !running; running = false;
+      if (!record) return null;
+      await new Promise(r => { rec.onstop = r; rec.stop(); });
+      if (wasStopped) return null;
+      return new File([new Blob(chunks, { type: 'video/webm' })], 'montaj.webm', { type: 'video/webm' });
+    }
+
+    function finish(result) {
+      running = false;
+      try { v.pause(); music.pause(); ac && ac.close(); } catch {}
+      URL.revokeObjectURL(url); musicUrl && URL.revokeObjectURL(musicUrl);
+      m.style.display = 'none'; m.innerHTML = '';
+      resolve(result);
+    }
+
+    function renderTexts() {
+      q('#tl').innerHTML = '';
+      texts.forEach((t, i) => {
+        const li = document.createElement('li');
+        const span = document.createElement('span');
+        span.textContent = `“${t.text}”  ${t.from}–${t.to} sn`;
+        const b = document.createElement('button');
+        b.textContent = '✕'; b.onclick = () => { texts.splice(i, 1); renderTexts(); draw(); };
+        li.append(span, b); q('#tl').append(li);
+      });
+    }
+    q('#ta').onclick = () => {
+      const text = q('#tt').value.trim();
+      if (!text) return status('Önce bir yazı gir.');
+      const from = q('#tf').value === '' ? +q('#es').value : +q('#tf').value;
+      const to = q('#te').value === '' ? +q('#ee').value : +q('#te').value;
+      if (!(to > from)) return status('Yazının bitişi başlangıcından büyük olmalı.');
+      texts.push({ text, from, to }); q('#tt').value = q('#tf').value = q('#te').value = '';
+      renderTexts();
+    };
+    q('#ef').onchange = e => {
+      const f = e.target.files[0]; if (!f) return;
+      if (!f.type.startsWith('audio/')) { e.target.value = ''; return status('Lütfen bir ses dosyası seç.'); }
+      musicUrl && URL.revokeObjectURL(musicUrl);
+      musicUrl = URL.createObjectURL(f); music.src = musicUrl;
+      status('Müzik eklendi: ' + f.name);
+    };
+    q('#ev').oninput = () => gv && (gv.gain.value = +q('#ev').value);
+    q('#em').oninput = () => gm && musicUrl && (gm.gain.value = +q('#em').value);
+    q('#pv').onclick = () => run(false);
+    q('#cx').onclick = () => finish(null);
+    q('#ok').onclick = async () => {
+      q('#ok').disabled = q('#pv').disabled = true;
+      try { const f = await run(true); if (f) return finish(f); }
+      catch (err) { status('Kayıt hatası: ' + err.message); }
+      q('#ok').disabled = q('#pv').disabled = false;
+    };
+  });
+}
+
+const sb = supabase.createClient(CFG.url, CFG.key);
+const $ = (s, r = document) => r.querySelector(s);
+const app = $('#app');
+let me = null, chan = null;
+
+// ---------- yardımcılar ----------
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pub = (b, p) => sb.storage.from(b).getPublicUrl(p).data.publicUrl;
+const NAME_RE = /^[^\s<>&"']{3,20}$/;
+function toast(m) { const t = $('#toast'); t.textContent = m; t.className = 'show'; clearTimeout(toast.t); toast.t = setTimeout(() => t.className = '', 3200); }
+function ago(d) {
+  const s = (Date.now() - new Date(d)) / 1000;
+  for (const [n, l] of [[31536000, 'yıl'], [2592000, 'ay'], [604800, 'hafta'], [86400, 'gün'], [3600, 'saat'], [60, 'dakika']])
+    if (s >= n) return Math.floor(s / n) + ' ' + l + ' önce';
+  return 'az önce';
+}
+function modal(html) { const m = $('#modal'); m.innerHTML = `<div class="back"><div class="box">${html}</div></div>`; m.style.display = 'block'; }
+function closeModal() { const m = $('#modal'); m.style.display = 'none'; m.innerHTML = ''; }
+const initial = n => esc([...n][0]?.toUpperCase() || '?');
+
+// ---------- kullanıcı sistemi ----------
+function askName(first) {
+  return new Promise(res => {
+    modal(`<h2>${first ? 'Hoş geldin 👋' : 'Kullanıcı adını değiştir'}</h2>
+      <p class="hint">${first ? 'Videolarda ve yorumlarda görünecek bir ad seç. Tarayıcın seni sonraki ziyaretlerde hatırlar.' : '3–20 karakter, boşluksuz.'}</p>
+      <input id="nm" maxlength="20" autocomplete="off" value="${first ? '' : esc(me.username)}">
+      <p id="er" class="err"></p>
+      <div class="row">${first ? '' : '<button class="ghost" id="no">İptal</button>'}<button id="go">Kaydet</button></div>`);
+    const nm = $('#nm'); nm.focus();
+    if (!first) $('#no').onclick = () => { closeModal(); res(); };
+    const save = async () => {
+      const name = nm.value.trim();
+      if (!NAME_RE.test(name)) return $('#er').textContent = 'Ad 3–20 karakter olmalı; boşluk ve < > & " \' içeremez.';
+      $('#go').disabled = true;
+      let error;
+      if (first) {
+        let { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+          const r = await sb.auth.signInAnonymously();
+          if (r.error) { $('#er').textContent = 'Oturum açılamadı: ' + r.error.message; $('#go').disabled = false; return; }
+          session = r.data.session;
+        }
+        ({ error } = await sb.from('profiles').insert({ id: session.user.id, username: name }));
+        if (!error) me = { id: session.user.id, username: name };
+      } else {
+        ({ error } = await sb.from('profiles').update({ username: name }).eq('id', me.id));
+        if (!error) me.username = name;
+      }
+      if (error) {
+        $('#er').textContent = error.code === '23505' ? 'Bu kullanıcı adı alınmış, başka bir ad dene.' : 'Kaydedilemedi: ' + error.message;
+        $('#go').disabled = false; return;
+      }
+      closeModal(); renderUser(); res();
+    };
+    $('#go').onclick = save;
+    nm.onkeydown = e => e.key === 'Enter' && save();
+  });
+}
+function renderUser() { $('#userBtn').textContent = '👤 ' + me.username; }
+$('#userBtn').onclick = async () => { await askName(false); route(); };
+
+// ---------- video kartları ----------
+const card = (v, del) => `<div class="card"><a href="#/watch/${v.id}"><div class="th"><img loading="lazy" alt="" src="${esc(pub('thumbs', v.thumb_path))}"></div>
+  <div class="meta"><div class="av">${initial(v.username)}</div><div><h3>${esc(v.title)}</h3><p>${esc(v.username)}</p><p>${v.views} görüntüleme • ${ago(v.created_at)}</p></div></div></a>
+  ${del ? `<button class="del" data-id="${v.id}">🗑 Sil</button>` : ''}</div>`;
+function grid(list, emptyMsg, del) {
+  return list.length ? `<div class="grid">${list.map(v => card(v, del)).join('')}</div>` : `<p class="empty">${emptyMsg}</p>`;
+}
+const fetchVideos = (f = x => x) => f(sb.from('video_list').select('*')).order('created_at', { ascending: false }).limit(60);
+
+// ---------- sayfalar ----------
+async function home() {
+  app.innerHTML = `<section class="hero"><h1>Ne izlemek istiyorsun?</h1><p>Herkesin yüklediği videolar tek yerde.</p>
+    <form id="hf"><input id="hq" placeholder="Video başlığı ara" maxlength="100" aria-label="Video ara"><button>Ara</button></form></section>
+    <div id="list"><p class="empty">Yükleniyor…</p></div>`;
+  $('#hf').onsubmit = e => { e.preventDefault(); go('search', $('#hq').value); };
+  const { data, error } = await fetchVideos();
+  $('#list').innerHTML = error ? `<p class="empty">Videolar yüklenemedi: ${esc(error.message)}</p>` : grid(data, 'Henüz video yok. İlk videoyu sen yükle!');
+}
+async function search(q) {
+  q = (q || '').trim(); $('#q').value = q;
+  app.innerHTML = `<h2>“${esc(q)}” için sonuçlar</h2><br><div id="list"><p class="empty">Aranıyor…</p></div>`;
+  const like = '%' + q.replace(/[\\%_]/g, m => '\\' + m) + '%';
+  const { data, error } = await fetchVideos(x => x.ilike('title', like));
+  $('#list').innerHTML = error ? `<p class="empty">${esc(error.message)}</p>` : grid(data, 'Video bulunamadı.');
+}
+async function mine() {
+  app.innerHTML = `<h2>Videolarım</h2><br><div id="list"></div>`;
+  const { data, error } = await fetchVideos(x => x.eq('user_id', me.id));
+  $('#list').innerHTML = error ? esc(error.message) : grid(data, 'Henüz video yüklemedin.', true);
+  document.querySelectorAll('.del').forEach(b => b.onclick = async () => {
+    if (!confirm('Bu video kalıcı olarak silinsin mi?')) return;
+    const v = data.find(x => x.id === b.dataset.id);
+    await sb.storage.from('videos').remove([v.video_path]);
+    await sb.storage.from('thumbs').remove([v.thumb_path]);
+    const { error } = await sb.from('videos').delete().eq('id', v.id);
+    error ? toast('Silinemedi: ' + error.message) : (toast('Video silindi'), mine());
+  });
+}
+async function liked() {
+  app.innerHTML = `<h2>Beğendiklerim</h2><br><div id="list"></div>`;
+  const { data: vt } = await sb.from('votes').select('video_id').eq('user_id', me.id).eq('value', 1);
+  const ids = (vt || []).map(x => x.video_id);
+  if (!ids.length) return $('#list').innerHTML = '<p class="empty">Henüz bir videoyu beğenmedin.</p>';
+  const { data } = await fetchVideos(x => x.in('id', ids));
+  $('#list').innerHTML = grid(data || [], 'Video bulunamadı.');
+}
+
+async function watch(id) {
+  app.innerHTML = '<p class="empty">Yükleniyor…</p>';
+  const { data: v } = await sb.from('video_list').select('*').eq('id', id).maybeSingle();
+  if (!v) return app.innerHTML = '<p class="empty">Video bulunamadı veya silinmiş.</p>';
+  sb.rpc('increment_views', { vid: id });
+  app.innerHTML = `<div class="watch"><section>
+    <video controls autoplay playsinline src="${esc(pub('videos', v.video_path))}"></video>
+    <h1>${esc(v.title)}</h1>
+    <div class="bar"><div class="owner"><div class="av">${initial(v.username)}</div>${esc(v.username)}</div>
+      <div class="votes"><button id="lk">👍 <span></span></button><button id="dk">👎 <span></span></button></div></div>
+    <div class="desc"><b>${v.views + 1} görüntüleme • ${ago(v.created_at)}</b>${esc(v.description) || 'Açıklama yok.'}</div>
+    <h3 id="cc">Yorumlar</h3>
+    <div class="cform"><textarea id="cb" maxlength="1000" placeholder="Yorum ekle"></textarea><button id="cs">Gönder</button></div>
+    <div id="cl"></div></section><aside id="rel"></aside></div>`;
+
+  let mine = 0;
+  async function loadVotes() {
+    const [{ data: s }, { data: my }] = await Promise.all([
+      sb.from('video_list').select('likes,dislikes').eq('id', id).single(),
+      sb.from('votes').select('value').eq('video_id', id).eq('user_id', me.id).maybeSingle()]);
+    mine = my?.value || 0;
+    $('#lk span').textContent = s?.likes ?? 0; $('#dk span').textContent = s?.dislikes ?? 0;
+    $('#lk').classList.toggle('on', mine === 1); $('#dk').classList.toggle('on', mine === -1);
+  }
+  async function vote(val) {
+    const r = mine === val
+      ? await sb.from('votes').delete().eq('video_id', id).eq('user_id', me.id)
+      : await sb.from('votes').upsert({ video_id: id, user_id: me.id, value: val }, { onConflict: 'video_id,user_id' });
+    if (r.error) toast('Oy verilemedi: ' + r.error.message);
+    loadVotes();
+  }
+  $('#lk').onclick = () => vote(1); $('#dk').onclick = () => vote(-1);
+
+  async function loadComments() {
+    const { data } = await sb.from('comments').select('id,body,created_at,user_id,profiles(username)').eq('video_id', id).order('created_at', { ascending: false }).limit(200);
+    $('#cc').textContent = (data?.length || 0) + ' yorum';
+    const box = $('#cl'); if (!box) return; box.innerHTML = '';
+    (data || []).forEach(c => {
+      const n = c.profiles?.username || '?';
+      const d = document.createElement('div'); d.className = 'cm';
+      d.innerHTML = `<div class="av">${initial(n)}</div><div><b>${esc(n)}</b> <small>${ago(c.created_at)}</small>${c.user_id === me.id ? '<button class="x">Sil</button>' : ''}<p>${esc(c.body)}</p></div>`;
+      const x = d.querySelector('.x');
+      if (x) x.onclick = async () => { const { error } = await sb.from('comments').delete().eq('id', c.id); error ? toast(error.message) : loadComments(); };
+      box.append(d);
+    });
+  }
+  $('#cs').onclick = async () => {
+    const body = $('#cb').value.trim(); if (!body) return;
+    $('#cs').disabled = true;
+    const { error } = await sb.from('comments').insert({ video_id: id, user_id: me.id, body });
+    $('#cs').disabled = false;
+    if (error) return toast('Yorum gönderilemedi: ' + error.message);
+    $('#cb').value = ''; loadComments();
+  };
+  chan = sb.channel('c-' + id).on('postgres_changes', { event: '*', schema: 'public', table: 'comments', filter: 'video_id=eq.' + id }, loadComments).subscribe();
+  loadVotes(); loadComments();
+
+  const { data: rel } = await fetchVideos(x => x.neq('id', id));
+  const r = $('#rel'); if (!r) return;
+  r.innerHTML = '<h3>Benzer videolar</h3><br>' + ((rel || []).slice(0, 12).map(x => `<a class="rel" href="#/watch/${x.id}"><div class="th"><img loading="lazy" alt="" src="${esc(pub('thumbs', x.thumb_path))}"></div><div><h4>${esc(x.title)}</h4><p>${esc(x.username)}</p><p>${x.views} görüntüleme</p></div></a>`).join('') || '<p class="empty">Başka video yok.</p>');
+}
+
+// ---------- yükleme ----------
+function uploadXHR(bucket, path, file, onp) {
+  return sb.auth.getSession().then(({ data: { session } }) => new Promise((ok, no) => {
+    const x = new XMLHttpRequest();
+    x.open('POST', `${CFG.url}/storage/v1/object/${bucket}/${path}`);
+    x.setRequestHeader('Authorization', 'Bearer ' + session.access_token);
+    x.setRequestHeader('apikey', CFG.key);
+    x.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+    x.upload.onprogress = e => e.lengthComputable && onp(e.loaded / e.total);
+    x.onload = () => x.status < 300 ? ok() : no(new Error(x.responseText));
+    x.onerror = () => no(new Error('Ağ hatası'));
+    x.send(file);
+  }));
+}
+function frameBlob(file) {
+  return new Promise((ok, no) => {
+    const u = URL.createObjectURL(file), v = document.createElement('video');
+    v.muted = true; v.preload = 'auto'; v.src = u;
+    v.onerror = () => { URL.revokeObjectURL(u); no(new Error('Video kapağı üretilemedi, bir küçük resim seç.')); };
+    v.onloadeddata = () => { v.currentTime = isFinite(v.duration) ? Math.min(1, v.duration / 2) : 0; };
+    v.onseeked = () => {
+      const c = document.createElement('canvas'); c.width = 640; c.height = Math.round(640 * v.videoHeight / v.videoWidth) || 360;
+      c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+      c.toBlob(b => { URL.revokeObjectURL(u); b ? ok(b) : no(new Error('Kapak üretilemedi')); }, 'image/jpeg', .85);
+    };
+  });
+}
+function upload() {
+  app.innerHTML = `<form class="form" id="uf"><h1>Video yükle</h1>
+    <label>Video dosyası (en fazla ${CFG.maxMB} MB)<input id="vf" type="file" accept="video/mp4,video/webm,video/quicktime,video/ogg"></label>
+    <video id="pv" class="pv" controls></video>
+    <div class="row" style="justify-content:flex-start"><button type="button" class="ghost" id="ed">🎬 Montaj ekranını aç</button><span id="es" class="hint"></span></div>
+    <label>Başlık<input id="ti" maxlength="100" required></label>
+    <label>Açıklama<textarea id="de" maxlength="5000"></textarea></label>
+    <label>Küçük resim (boş bırakırsan videodan otomatik alınır)<input id="tf" type="file" accept="image/jpeg,image/png,image/webp"></label>
+    <div class="prog" id="pr"><i></i></div><p class="err" id="er"></p>
+    <div class="row"><button id="up">Yükle ve yayınla</button></div></form>`;
+  let file = null;
+  const setFile = f => { file = f; const p = $('#pv'); p.src = URL.createObjectURL(f); p.style.display = 'block'; };
+  $('#vf').onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    if (!f.type.startsWith('video/')) { e.target.value = ''; return toast('Lütfen bir video dosyası seç.'); }
+    if (f.size > CFG.maxMB * 1048576) { e.target.value = ''; return toast(`Dosya ${CFG.maxMB} MB'dan büyük.`); }
+    $('#es').textContent = ''; setFile(f);
+    if (!$('#ti').value) $('#ti').value = f.name.replace(/\.[^.]+$/, '').slice(0, 100);
+  };
+  $('#ed').onclick = async () => {
+    if (!file) return toast('Önce bir video seç.');
+    const out = await openEditor(file);
+    if (out) { setFile(out); $('#es').textContent = '✔ Montaj uygulandı'; }
+  };
+  $('#uf').onsubmit = async e => {
+    e.preventDefault(); const er = $('#er'); er.textContent = '';
+    const title = $('#ti').value.trim();
+    if (!file) return er.textContent = 'Bir video seçmelisin.';
+    if (!title) return er.textContent = 'Başlık gerekli.';
+    if (file.size > CFG.maxMB * 1048576) return er.textContent = `Dosya ${CFG.maxMB} MB'dan büyük.`;
+    $('#up').disabled = true; $('#pr').style.display = 'block';
+    const id = crypto.randomUUID();
+    const ext = file.type === 'video/webm' ? 'webm' : file.type === 'video/quicktime' ? 'mov' : file.type === 'video/ogg' ? 'ogv' : 'mp4';
+    const vp = `${me.id}/${id}.${ext}`;
+    let tp = null;
+    try {
+      let tb = $('#tf').files[0];
+      if (tb && (tb.size > 5242880 || !/^image\/(jpeg|png|webp)$/.test(tb.type))) throw new Error('Küçük resim JPG/PNG/WEBP ve en fazla 5 MB olmalı.');
+      if (!tb) tb = await frameBlob(file);
+      tp = `${me.id}/${id}.${tb.type === 'image/png' ? 'png' : tb.type === 'image/webp' ? 'webp' : 'jpg'}`;
+      const tr = await sb.storage.from('thumbs').upload(tp, tb, { contentType: tb.type });
+      if (tr.error) throw tr.error;
+      await uploadXHR('videos', vp, file, p => { $('#pr i').style.width = Math.round(p * 100) + '%'; });
+      const { error } = await sb.from('videos').insert({ id, user_id: me.id, title, description: $('#de').value.trim(), video_path: vp, thumb_path: tp });
+      if (error) throw error;
+      toast('Video yayınlandı 🎉'); go('watch', id);
+    } catch (err) {
+      er.textContent = 'Yükleme başarısız: ' + (err.message || err);
+      sb.storage.from('videos').remove([vp]); if (tp) sb.storage.from('thumbs').remove([tp]);
+      $('#up').disabled = false;
+    }
+  };
+}
+
+// ---------- yönlendirme ----------
+const go = (r, a = '') => { location.hash = '#/' + r + (a !== '' ? '/' + encodeURIComponent(a) : ''); };
+function route() {
+  if (chan) { sb.removeChannel(chan); chan = null; }
+  const [r, ...a] = (location.hash.slice(2) || '').split('/');
+  const arg = decodeURIComponent(a.join('/'));
+  document.querySelectorAll('.side a').forEach(x => x.classList.toggle('on', x.dataset.r === (r || 'home')));
+  $('#side').classList.remove('open'); scrollTo(0, 0);
+  ({ '': home, search, watch, upload, mine, liked }[r] || home)(arg);
+}
+$('#searchForm').onsubmit = e => { e.preventDefault(); const q = $('#q').value.trim(); q ? go('search', q) : go(''); };
+$('#menuBtn').onclick = () => $('#side').classList.toggle('open');
+addEventListener('hashchange', route);
+
+(async function boot() {
+  if (CFG.url.includes('PROJE-ID')) return app.innerHTML = '<p class="empty">config.js dosyasına Supabase URL ve anon anahtarını gir.</p>';
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) { const { data } = await sb.from('profiles').select('id,username').eq('id', session.user.id).maybeSingle(); if (data) me = data; }
+  if (!me) await askName(true);
+  renderUser(); route();
+})();
+</script>
+</body>
+</html>
